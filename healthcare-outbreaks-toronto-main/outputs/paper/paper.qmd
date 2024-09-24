@@ -1,0 +1,217 @@
+---
+title: "Understanding overnight service occupancy and capacity in Toronto's shelter system"
+author:
+  - Xiaolu Ji
+thanks: "A GitHub Repository containing all data, R code, and other files used in this investigation is located here: <https://github.com/bennyrochwerg/healthcare-outbreaks-toronto>"
+date: 09-24-2024
+date-format: long
+abstract: "In this report, 2023 Toronto shelter data on overnight service occupancy and capacity was analyzed. Since 2021, it includes all overnight services, distinguishing between bed-based and room-based capacities. The data reveals challenges like discrepancies between funded and actual capacity due to maintenance, affecting the system's ability to meet demand. Most shelters operate with under 100 rooms, often reaching capacity, indicating resource strains. Addressing these issues requires understanding operational constraints and exploring optimization solutions."
+format: pdf
+number-sections: true
+# The toc parameter used to create a table of contents was obtained from
+# Quarto documentation:
+# https://quarto.org/docs/reference/formats/pdf.html
+toc: true
+bibliography: references.bib
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#### Preamble ####
+
+# Purpose: Generates a paper titled "Long-term care homes were hit hardest by
+# 2023 disease outbreaks in Toronto healthcare facilities" in PDF format when
+# rendered.
+# Author: Benny Rochwerg
+# Date: January 23, 2024
+# Contact: 4321benny@gmail.com
+# Pre-requisites: Run the files "01-download_data.R" and "02-data_cleaning.R".
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#### Loading Packages ####
+
+#install.packages("tidyverse")
+#install.packages("here")
+library(tidyverse)
+library(here)
+library(opendatatoronto)
+```
+
+# Introduction {#sec-introduction}
+
+In 2021, the Toronto Shelter and Support Services revised their approach to managing data about daily shelter occupancy and capacity, marking a significant step forward in enhancing service delivery. Recognizing the growing demand for reliable shelter resources amid increasing homelessness, it has adopted a comprehensive data set via the Shelter Management Information System [@laws1992emergency]. This data encompasses a daily updated list of active overnight shelters and allied services, providing insights into occupancy, capacity, and operational metrics crucial for service optimization.
+
+Due to the complexity and dynamic nature of shelter environments, capturing accurate data on occupancy and capacity is of paramount importance. Overcrowding, resource allocation, and ensuring adequate living conditions are persistent challenges faced by shelters in urban centers like Toronto. The updated data set now includes all types of overnight services, addressing previous shortcomings by encompassing room-based and bed-based capacity measures, thereby preventing any overrepresentation of available resources [@pigliacelli2015toronto].
+
+To address this, the investigation examines the capacity classifications (bed-based vs. room-based) and their implications on accurate occupancy reporting. The analysis utilizes shelter data from 2023 to uncover trends and gaps in service delivery, focusing on factors such as program operator, location, and capacity type to better assess operational efficiency [@since2022vizualizing]. 
+
+Findings from the data reveal that room-based programs are significantly underrepresented in the total capacity figure, often leading to miscalculations in available shelter space. Additionally, actual capacity often deviates from funding capacity due to factors like maintenance and renovations, suggesting a need for policy shifts to better accommodate these variances [@siemiatycki2021developing].
+
+The remainder of this paper is structured as follows: [@sec-data] presents an overview of the data and methodology; [@sec-discussion] interprets the results and their implications; and [@sec-appendix] includes additional information and resources related to the analysis.
+
+# Data {#sec-data}
+
+## Overview {#sec-data-overview}
+
+The dataset utilized for this analysis is the "Daily Shelter & Overnight Service Occupancy & Capacity" dataset, which is maintained by the Toronto Shelter and Support Services division. This dataset provides a comprehensive overview of daily occupancy and capacity figures across various shelter programs in Toronto and is an integral part of the Shelter Management Information System[@jadidzadeh2018patterns]. The collection and maintenance of this dataset align with mandates for transparent reporting and efficient resource management within the city's shelter system.
+
+This dataset is updated daily to capture real-time changes in shelter operations, ensuring that stakeholders have access to current information about shelter utilization [@jadidzadeh2023homeless]. As open data, it is freely accessible for public use, provided that the proper attribution statement is included, and it adheres to the City of Toronto's Open Data License.
+
+Key variables in this dataset include "Program Operator," which identifies the managing entity of each shelter program; "Location," which specifies the address or general area of the shelter; "Capacity Type," distinguishing between bed-based and room-based capacities; and "Occupancy," providing the number of beds or rooms that are currently occupied [@ranasinghe2006governing].
+
+Despite exploring other available datasets, such as "COVID-19 Cases in Toronto," the "Daily Shelter & Overnight Service Occupancy & Capacity" dataset was singularly suitable for this analysis due to its specific focus on the shelter system.
+
+For data processing and analysis, the R programming language was utilized, employing the janitor and tidyverse packages to streamline data cleaning and manipulation. The opendatatoronto package facilitated the retrieval of the raw dataset from Toronto's Open Data portal, while tidyverse provided robust tools for organizing and analyzing the dataset to yield meaningful insights.
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+#### Loading the Cleaned Dataset ####
+marriage_licence_packages <- search_packages("Daily Shelter & Overnight Service Occupancy & Capacity")
+marriage_licence_packages
+# Retrieve a list of all resources (datasets) available within the found package
+marriage_licence_resources <- marriage_licence_packages %>%
+  list_package_resources()
+# Display the list of resources available in the "Marriage Licence Statistics" package
+marriage_licence_resources
+marriage_licence_statistics <- marriage_licence_resources[2,] %>%
+  get_resource()
+data = marriage_licence_resources
+
+```
+
+After loading the dataset using the R programming language [@citeR] and the `here` package [@citehere], the `tidyverse` [@citetidyverse] package was used to generate graphs. In doing so, R code was adapted from @tellingstorieswithdata.
+
+\newpage
+
+```{r}
+#| echo: false
+#| warning: false
+
+#### First Graph Labels ####
+
+# This code is based on knowledge from Alexander (2023).
+
+# Preparing the necessary data to create the labels
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+data=read.csv("/Users/madelineji/Desktop/healthcare-outbreaks-toronto-main/outputs/data/data1.csv")
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-shelter-occupancy
+#| fig-cap: "Distribution Occupied Rooms in Toronto Shelters since 2021"
+
+#### First Graph ####
+
+# This code is based on knowledge from Alexander (2023).
+
+# Plot 1:
+ ggplot(data, aes(x = as.numeric(OCCUPIED_ROOMS))) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Occupied Rooms", x = "Occupied Rooms", y = "Frequency")
+
+```
+
+@fig-shelter-occupancy illustrates the distribution of occupied rooms in shelters. The x-axis represents the number of occupied rooms, while the y-axis shows the frequency of shelters with those numbers. Most shelters have fewer than 100 occupied rooms, with a high frequency between 0 and 50 rooms. There is a noticeable gap with fewer shelters having room occupancy between 100 and 200. Additionally, smaller peaks in frequency appear around 200 to 300 occupied rooms. This distribution suggests variability in shelter sizes or differing levels of capacity utilization.
+\newpage
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-occupied-rooms-by-shelter-group
+#| fig-cap: "Distribution of Occupied Rooms by Toronto Shelter Group since 2021"
+
+#### Second Graph ####
+
+# This code is based on knowledge from Alexander (2023).
+
+# Plot 2:
+top_shelter_groups <- data %>%
+  group_by(SHELTER_GROUP) %>%
+  summarise(count = n()) %>%
+  top_n(5, count) %>%
+  pull(SHELTER_GROUP)
+
+data_top5 <- data %>%
+  filter(SHELTER_GROUP %in% top_shelter_groups)
+
+ ggplot(data_top5, aes(x = SHELTER_GROUP, y = as.numeric(OCCUPIED_ROOMS))) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  theme_minimal() +
+  labs(title = "Occupied Rooms by Top 5 Shelter Groups", x = "Shelter Group", y = "Occupied Rooms") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+@fig-occupied-rooms-by-shelter-group illustrates the distribution of occupied rooms for the top five shelter groups. Birchdale Residence shows a compact distribution with a median below 100 rooms, indicating smaller fluctuations. The COSTI Reception Centre has a slightly wider range, with a median under 100 rooms. Dixon Hall - Heyworth House displays a narrow range with a median slightly over 50, reflecting consistent occupancy. HFS - Scarborough Shelter exhibits significant variability, including outliers, but maintains a median under 150 rooms. Seaton House has the widest range and highest median, indicating substantial variability. This highlights differences in capacity utilization and size among the shelters.
+
+\newpage
+
+```{r}
+#| echo: false
+#| warning: false
+#| label: fig-actual-room-capacity
+#| fig-cap: "Distribution Room Capacity in Toronto Shelters since 2021"
+
+#### Third Graph ####
+
+# This code is based on knowledge from Alexander (2023).
+
+# Plot 3:
+ggplot(data, aes(x = as.numeric(CAPACITY_ACTUAL_ROOM))) +
+  geom_histogram(binwidth = 10, fill = "purple", color = "black", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Room Capacity", x = "Actual Room Capacity", y = "Frequency")
+
+```
+
+@fig-actual-room-capacity illustrates the distribution of actual room capacity across shelters. Most shelters have a capacity of fewer than 100 rooms, with peak frequencies between 0 and 50 rooms. There's a noticeable decline in frequency as room capacity increases beyond 100. Few shelters have capacities above 200 rooms, with minor peaks around 250 and 300. This distribution suggests that most shelters operate with limited room capacity, reflecting their size and potential service scope.
+
+# Discussion {#sec-discussion}
+
+Regarding "Daily Shelter & Overnight Service Occupancy & Capacity" data, several critical insights emerged. The data revealed that the majority of shelters have a capacity of fewer than 100 rooms[@fig-occupied-rooms-by-shelter-group], with actual occupancy often falling within this range. A significant finding was the discrepancy between funded and actual capacity due to factors like maintenance and renovations, which impact the availability of beds or rooms for occupancy[@fig-actual-room-capacity].
+
+These results suggest underlying challenges in shelter resource management. For instance, shelters with room-based capacities are particularly affected by discrepancies, as their actual capacity can be temporarily reduced. This may lead to an overestimation of available resources and affect service delivery to individuals in need. The ongoing challenges echo past issues in resource allocation within the shelter system, where operational constraints often meant inadequate service provision to the homeless population.Therefore, the government implements Toronto shelter zoning by-laws, which present municipal limits in addressing homelessness[@ranasinghe2009toronto].
+
+Despite examining extensive data points related to shelter occupancy and capacity in Toronto since 2021, several limitations exist[@hwang2000mortality]. For example, the data might not fully capture nightly fluctuations in occupancy, leading to potential underestimations of demand. Additionally, the data does not account for informal housing arrangements or those who may not access formal shelter systems, contributing to an incomplete picture of housing precarity.
+
+Future research should focus on exploring the causes of capacity discrepancies in depth, alongside examining potential solutions to optimize resource utilization. Expanding the analysis to include other cities could provide a comparative understanding and offer insights into best practices for shelter management across varied urban landscapes.
+
+\newpage
+
+\appendix
+
+# Appendix {#sec-appendix}
+
+## Dataset and Graph Sketches {#sec-appendix-sketches}
+
+Sketches depicting both the desired dataset and the graphs generated in this analysis are available in the GitHub Repository.
+
+## Data Cleaning {#sec-appendix-cleaning}
+
+The data cleaning process involved filtering out some of the columns from the raw dataset and renaming some of the data entries for clarity and simplicity.
+
+## Attribution Statement {#sec-appendix-attribution}
+
+"Contains information licensed under the Open Government Licence – Toronto"[@tphlicense].
+
+\newpage
+
+# References {#sec-references}
